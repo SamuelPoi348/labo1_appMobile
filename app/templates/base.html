@@ -1,6 +1,15 @@
 <!DOCTYPE html>
   <html lang="fr">
   <head>
+    <style>
+         nav {
+      background-color: #f39c12;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    </style>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>{% block title %}Mon App Flask{% endblock %}</title>
@@ -8,6 +17,11 @@
   <body>
       <nav>
           <!-- Navigation ici -->
+           <h1>Critique de film</h1>
+            <ul>
+                
+                <li><a href="/">Accueil</a></li>
+            </ul>   
       </nav>
       {% block content %}{% endblock %}
   </body>
