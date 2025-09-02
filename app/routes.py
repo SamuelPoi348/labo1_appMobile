@@ -26,4 +26,9 @@ def index():
 # ajouter le code pour la route
 # utiliser render_template pour faire afficher la page html
 # faire passer les données nécessaires au template
+
     return render_template('index.html',critiques=critiques,utilisateur=utilisateur)
+
+@app.route('/connexion', methods=['GET', 'POST'])
+def connexion():
+    return render_template('connexion.html')
