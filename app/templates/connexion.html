@@ -1,7 +1,40 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Connexion</h1>
-    <form method="POST">
-       
-{% endblock %}
+<h1>Se connecter</h1>
+<form method="POST" novalidate>
+
+    <!--activation securite CSRF-->
+    {{ form.hidden_tag() }}
+
+    <!-- Champ nom d'utilisateur -->
+     <br>
+    {{ form.nom_utilisateur.label }}<br>
+    {{ form.nom_utilisateur(size=32) }}<br><br>
+
+    {% for error in form.nom_utilisateur.errors %}
+    <span style="color: red;">{{ error }}</span>
+    {% endfor %}
+
+    <!-- Champ mot de passe -->
+     <br>
+    {{ form.mot_passe.label }}<br>
+    {{ form.mot_passe(size=32) }}<br><br>
+
+    {% for error in form.mot_passe.errors %}
+    <span style="color: red;">{{ error }}</span>
+    {% endfor %}
+
+    <br><br>
+
+    <!-- Champ checkbox -->
+     {{ form.se_souvenir() }}
+    {{ form.se_souvenir.label}}
+     {% for error in form.se_souvenir.errors %}
+     {% endfor %}
+
+
+    {{ form.connexion_submit() }}
+</form>
+
+    {% endblock %}

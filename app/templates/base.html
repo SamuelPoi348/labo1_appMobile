@@ -1,29 +1,45 @@
 <!DOCTYPE html>
-  <html lang="fr">
-  <head>
-    <style>
-         nav {
+<html lang="fr">
+
+<head>
+  <style>
+    nav {
       background-color: #f39c12;
       padding: 10px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    </style>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>{% block title %}Labo01{% endblock %}</title>
-  </head>
-  <body>
-      <nav>
-          <!-- Navigation ici -->
-           <h1>Critique de film</h1>
-            <ul>
-                
-                <li><a href="/">Accueil</a></li>
-                  <li><a href="/connexion">connexion</a></li>
-            </ul>   
-      </nav>
-      {% block content %}{% endblock %}
-  </body>
-  </html>
+  </style>
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Labo01{% endblock %}</title>
+</head>
+
+<body>
+  <nav>
+    <!-- Navigation ici -->
+    <h1>Critique de film</h1>
+    <ul>
+      <a href="{{ url_for('index') }}">Accueil</a> |
+      <a href="{{ url_for('connexion') }}">Connexion</a>
+    </ul>
+  </nav>
+  <!-- Message Flash Global -->
+  <!--- Crée une variable temporaire messages qui récupère tous les messages flash.
+    with_categories=true permet d'avoir la catégorie ("success", "error", etc.)-->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</body>
+
+</html>
