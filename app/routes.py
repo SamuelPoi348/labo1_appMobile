@@ -37,6 +37,10 @@ def connexion():
     if form.validate_on_submit():
         session['nom_utilisateur'] = form.nom_utilisateur.data
         session['se_souvenir'] = form.se_souvenir.data
-        flash(f'Connexion requise pour acceder à cette page {form.nom_utilisateur.data}, remember_me={form.se_souvenir.data}', 'success')
+        if session['nom_utilisateur'] =="admin" and form.mot_passe.data == "admin":
+            flash(f'Bienvenue {form.nom_utilisateur.data}, remember_me={form.se_souvenir.data}', 'success')
+        else :
+            flash(f'Connexion requise pour acceder à cette page {form.nom_utilisateur.data}, remember_me={form.se_souvenir.data}', 'error')
+
         return redirect(url_for('index'))  
     return render_template('connexion.html', form=form)
