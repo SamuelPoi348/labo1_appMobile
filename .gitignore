@@ -1,4 +1,9 @@
- venv/ 
-__pycache__/ 
-*.pyc 
-.flaskenv
+venv/
+  pycache/
+  *.pyc
+  .flaskenv
+  *.db
+  *.sqlite3
+  instance/
+  .env
+  .env.local
