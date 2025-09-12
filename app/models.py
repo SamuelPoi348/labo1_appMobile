@@ -3,6 +3,8 @@ import sqlalchemy as sa
 import sqlalchemy.orm as so 
 from datetime import datetime, timezone, date, time 
 import decimal 
+from app import db
+
 
 class Utilisateur(db.Model):
     __tablename__ = 'utilisateur'
