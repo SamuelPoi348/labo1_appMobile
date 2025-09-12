@@ -1,6 +1,7 @@
 from app import app
 from flask import render_template, redirect, url_for, flash, session
 from app.form import FormConnexion  
+from app.models import Utilisateur, Post
 
 utilisateur = "Samuel Poirier"
 critiques = [ 
