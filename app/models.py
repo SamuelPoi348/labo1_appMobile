@@ -6,7 +6,7 @@ from datetime import datetime, timezone, date, time
 import decimal 
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, UserMixin
+from flask_login import UserMixin
 
 
 db = SQLAlchemy()
@@ -19,39 +19,35 @@ db = SQLAlchemy()
 #@login.user_loader
 #def load_user(id):
 # retourner l’utilisateur par son id
-class Utilisateur(db.Model):
-    __tablename__ = 'utilisateur'
+class Utilisateur(db.Model, UserMixin):
+      id: so.Mapped[int] = so.mapped_column(primary_key=True)
+      nom_utilisateur: so.Mapped[str] = so.mapped_column(sa.String(64), unique=True, index=True)
+      email: so.Mapped[str] = so.mapped_column(sa.String(120), unique=True, index=True)
+      mot_passe_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
 
-    id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    nom_utilisateur: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False, unique=True)
-    email: so.Mapped[str] = so.mapped_column(sa.String(120), nullable=False, unique=True)
-    mot_passe_hash: so.Mapped[str] = so.mapped_column(sa.String(128), nullable=False)
+      posts: so.WriteOnlyMapped['Post'] = so.relationship(back_populates='auteur')
 
-    posts: so.Mapped[List["Post"]] = so.relationship(
-        back_populates="utilisateur",
-        cascade="all, delete-orphan"
-    )
+      def repr(self):
+          return f'<Utilisateur {self.nom_utilisateur}>'
 
-    def __repr__(self) -> str:
-        return f"<Utilisateur {self.nom_utilisateur}>"
-    
-    def genere_mot_passe(self, mot_passe: str) -> None:
+      def genere_mot_passe(self, mot_de_passe):
+          self.mot_passe_hash = generate_password_hash(mot_de_passe)
 
-        self.mot_passe_hash = generate_password_hash(mot_passe)
-
-    def verifier_mot_de_passe(self, mot_passe: str) -> bool:
-
-        return check_password_hash(self.mot_passe_hash,mot_passe)
+      def verifier_mot_de_passe(self, mot_de_passe):
+         if self.mot_passe_hash is None:
+          return False
+         return check_password_hash(self.mot_passe_hash, mot_de_passe)
 
 
 class Post(db.Model):
-    __tablename__ = 'post'
 
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
+
     contenu: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
+
     timestamp: so.Mapped[datetime] = so.mapped_column(
         sa.DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=datetime.now(tz=timezone.utc),
         nullable=False
     )
     id_utilisateur: so.Mapped[int] = so.mapped_column(
@@ -59,7 +55,7 @@ class Post(db.Model):
         nullable=False
     )
 
-    utilisateur: so.Mapped["Utilisateur"] = so.relationship(back_populates="posts")
+    auteur: so.Mapped["Utilisateur"] = so.relationship(back_populates="posts")
 
     def __repr__(self) -> str:
         return f"<Post {self.id} par Utilisateur {self.id_utilisateur}>"

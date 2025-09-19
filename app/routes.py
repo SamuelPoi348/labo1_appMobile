@@ -1,47 +1,87 @@
 from app import app
-from flask import render_template, redirect, url_for, flash, session
+from flask import render_template, redirect, url_for, flash, session, request
 from app.form import FormConnexion  
 from app.models import Utilisateur, Post
+from flask_login import current_user, login_user, logout_user, login_required
+from app.form import FormConnexion, FormEnregistrement
+import sqlalchemy as sa
+from app import db
+from urllib.parse import urlsplit
 
-utilisateur = "Samuel Poirier"
-critiques = [ 
-    {
-        "nom_utilisateur": "FilmLover23",
-        "film": "Oppenheimer",
-        "commentaire": "Un chef-d'œuvre cinématographique ! Nolan nous livre une biographie captivante avec des performances exceptionnelles."
-    },
-    {
-        "nom_utilisateur": "CinéPassionné",
-        "film": "Spider-Man: Across the Spider-Verse",
-        "commentaire": "L'animation est révolutionnaire et l'histoire multi-dimensionnelle est brillamment exécutée."
-    },
-    {
-        "nom_utilisateur": "MovieCritic2024",
-        "film": "The Batman",
-        "commentaire": "Une approche sombre et mature du personnage. Robert Pattinson surprend dans le rôle titre."
-    },
-    {
-        "nom_utilisateur": "FilmExpert",
-        "film": "Dune",
-        "commentaire": "Adaptation fidèle et visuellement époustouflante. Denis Villeneuve maîtrise parfaitement l'univers de Herbert."
-    }
-]
+
+
+#utilisateur = "Samuel Poirier"
+
 
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html', critiques=critiques, utilisateur=utilisateur)
+    return render_template('index.html')
 
 @app.route('/connexion', methods=['GET', 'POST'])
 def connexion():
+    if current_user.is_authenticated:
+            return redirect(url_for('index'))
+        
     form = FormConnexion()
     if form.validate_on_submit():
-        session['nom_utilisateur'] = form.nom_utilisateur.data
-        session['se_souvenir'] = form.se_souvenir.data
-        if session['nom_utilisateur'] =="admin" and form.mot_passe.data == "admin":
-            flash(f'Bienvenue {form.nom_utilisateur.data}, remember_me={form.se_souvenir.data}', 'success')
-        else :
-            flash(f'Connexion requise pour acceder à cette page {form.nom_utilisateur.data}, remember_me={form.se_souvenir.data}', 'error')
+          # Recherche de l'utilisateur par nom d'utilisateur
+          utilisateur = db.session.scalar(
+              sa.select(Utilisateur).where(Utilisateur.nom_utilisateur == form.nom_utilisateur.data)
+          )
 
-        return redirect(url_for('index'))  
+          # Vérification du mot de passe avec la méthode verifier_mot_de_passe()
+          if utilisateur is None or not utilisateur.verifier_mot_de_passe(form.mot_passe.data):
+              flash('Nom d\'utilisateur ou mot de passe incorrect', 'error')
+              return redirect(url_for('connexion'))
+
+          # Créer la session utilisateur et gérer "Se souvenir de moi"
+          login_user(utilisateur, remember=form.se_souvenir.data)
+
+          # Gestion de la redirection après connexion (paramètre next)
+          page_suivante = request.args.get('next')
+          if not page_suivante or urlsplit(page_suivante).netloc != '':
+              page_suivante = url_for('index')
+          return redirect(page_suivante)
+
     return render_template('connexion.html', form=form)
+
+@app.route('/deconnexion')
+def deconnexion():
+    logout_user()
+    return redirect(url_for('index'))
+
+
+@app.route('/enregistrement', methods=['GET', 'POST'])
+def enregistrement():
+      # Rediriger vers index si l'utilisateur est déjà connecté
+      if current_user.is_authenticated:
+          return redirect(url_for('index'))
+
+      # Créer une instance de FormEnregistrement
+      form = FormEnregistrement()
+
+      # Vérifier si le formulaire est valide avec validate_on_submit()
+      if form.validate_on_submit():
+          # Instancier un objet Utilisateur avec les données du formulaire
+          utilisateur = Utilisateur(nom_utilisateur=form.nom_utilisateur.data, email=form.email.data # type: ignore
+          )
+
+          # Appeler la méthode genere_mot_passe() avec le mot de passe du formulaire
+          utilisateur.genere_mot_passe(form.mot_passe.data)
+
+          # Ajouter l'utilisateur à la session de base de données
+          db.session.add(utilisateur)
+
+          # Effectuer le commit
+          db.session.commit()
+
+          # Afficher un message flash de confirmation
+          flash('Félicitations, vous êtes maintenant enregistré!', 'success')
+
+          # Rediriger vers la page de connexion
+          return redirect(url_for('connexion'))
+
+      # Sur un GET: Rendre le template form_enregistrement.html avec le formulaire
+      return render_template('enregistrement.html', form=form)
+

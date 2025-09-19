@@ -1,16 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Bienvenue {{utilisateur}}</h1>
+<h1>Bienvenue {{current_user.nom_utilisateur}}</h1>
 <!-- Votre contenu spécifique ici -->
 <ul>
-    {% for critique in critiques %}
-        <li>
-            <article style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-            Critique par:<strong>{{ critique.nom_utilisateur }}</strong> <br>
-             Film {{ critique.film }}: {{ critique.commentaire }}
-            </article> 
-            
-        </li>
-    {% endfor %}
+   <h1>Critiques de films</h1>
 </ul>
 {% endblock %}

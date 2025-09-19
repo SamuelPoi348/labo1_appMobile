@@ -32,9 +32,16 @@
     <!-- Navigation ici -->
     <h1>Critique de film</h1>
     <ul>
-      <a href="{{ url_for('index') }}">Accueil</a> |
-      <a href="{{ url_for('connexion') }}">Connexion</a>
+ {% if current_user.is_anonymous %}
+          <a href="{{ url_for('index') }}">Accueil</a>
+          <a href="{{ url_for('connexion') }}">Connexion</a>
+      {% else %}
+          <a href="{{ url_for('index') }}">Accueil</a>
+          Bonjour, {{ current_user.nom_utilisateur }}
+          <a href="{{ url_for('deconnexion') }}">Déconnexion</a>
+      {% endif %}
     </ul>
+    
   </nav>
   <!-- Message Flash Global -->
   <!--- Crée une variable temporaire messages qui récupère tous les messages flash.
