@@ -4,6 +4,7 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin
+#from app.models import Utilisateur, Post
 
 # Config de Flask Login
 app = Flask(__name__)

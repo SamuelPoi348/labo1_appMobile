@@ -7,15 +7,27 @@ from app.form import FormConnexion, FormEnregistrement
 import sqlalchemy as sa
 from app import db
 from urllib.parse import urlsplit
+from datetime import datetime, timezone
 
 
 
 #utilisateur = "Samuel Poirier"
-
+@app.before_request
+def update_last_seen():
+    if current_user.is_authenticated:
+        current_user.derniere_connexion = datetime.now(timezone.utc)
+        db.session.commit()
 
 @app.route('/')
 @app.route('/index')
 def index():
+    if current_user.is_authenticated:
+        posts = db.session.scalars(
+            sa.select(Post)
+              .where(Post.id_utilisateur == current_user.id)
+              .order_by(Post.timestamp.desc())
+        ).all()
+        return render_template('index.html', utilisateur=current_user, posts=posts)
     return render_template('index.html')
 
 @app.route('/connexion', methods=['GET', 'POST'])
@@ -35,13 +47,17 @@ def connexion():
               flash('Nom d\'utilisateur ou mot de passe incorrect', 'error')
               return redirect(url_for('connexion'))
 
+
           # Créer la session utilisateur et gérer "Se souvenir de moi"
           login_user(utilisateur, remember=form.se_souvenir.data)
+
+          
+
 
           # Gestion de la redirection après connexion (paramètre next)
           page_suivante = request.args.get('next')
           if not page_suivante or urlsplit(page_suivante).netloc != '':
-              page_suivante = url_for('index')
+             page_suivante = url_for('profil', nom_utilisateur=utilisateur.nom_utilisateur)
           return redirect(page_suivante)
 
     return render_template('connexion.html', form=form)
@@ -84,4 +100,20 @@ def enregistrement():
 
       # Sur un GET: Rendre le template form_enregistrement.html avec le formulaire
       return render_template('enregistrement.html', form=form)
+
+@app.route('/user/<nom_utilisateur>')
+@login_required
+def profil(nom_utilisateur):
+    utilisateur = db.session.scalar(
+        sa.select(Utilisateur).where(Utilisateur.nom_utilisateur == nom_utilisateur)
+    )
+    if utilisateur is None:
+        flash(f"L'utilisateur {nom_utilisateur} n'a pas été trouvé.", 'error')
+        return redirect(url_for('index'))
+    
+    posts = db.session.scalars(
+        sa.select(Post).where(Post.id_utilisateur == utilisateur.id).order_by(Post.timestamp.desc())
+    ).all()
+    
+    return render_template('user.html', utilisateur=utilisateur, posts=posts)
 

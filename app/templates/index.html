@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Bienvenue {{current_user.nom_utilisateur}}</h1>
-<!-- Votre contenu spécifique ici -->
-<ul>
-   <h1>Critiques de films</h1>
-</ul>
+{# Affiche le profil de l'utilisateur connecté, si connecté #}
+  {% if current_user.is_authenticated %}
+    {% include "_profil_utilisateur.html" with context %}
+  {% else %}
+    <p>Bienvenue ! Veuillez <a href="{{ url_for('connexion') }}">vous connecter</a>.</p>
+  {% endif %}
 {% endblock %}
