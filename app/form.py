@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,BooleanField,SubmitField
+from wtforms import StringField,PasswordField,BooleanField,SubmitField, TextAreaField
 from wtforms.validators import DataRequired,Length,Email,EqualTo,ValidationError
 import sqlalchemy as sa
 from app.models import Utilisateur
@@ -38,4 +38,10 @@ class FormEnregistrement(FlaskForm):
           utilisateur = db.session.scalar(sa.select(Utilisateur).where(Utilisateur.email == email.data))
           if utilisateur is not None:
               raise ValidationError('Cet email est déjà utilisé. Veuillez en choisir un autre.')
+
+class FormEditionProfil(FlaskForm):
+    nom_utilisateur = StringField('Nom d\'utilisateur', validators=[DataRequired(), Length(min=2, max=64)])
+    a_propos_moi = TextAreaField('À propos de moi', validators=[Length(max=140)])
+    submit = SubmitField('Enregistrer')
+
 

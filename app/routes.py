@@ -3,7 +3,7 @@ from flask import render_template, redirect, url_for, flash, session, request
 from app.form import FormConnexion  
 from app.models import Utilisateur, Post
 from flask_login import current_user, login_user, logout_user, login_required
-from app.form import FormConnexion, FormEnregistrement
+from app.form import FormConnexion, FormEnregistrement, FormEditionProfil
 import sqlalchemy as sa
 from app import db
 from urllib.parse import urlsplit
@@ -116,4 +116,19 @@ def profil(nom_utilisateur):
     ).all()
     
     return render_template('user.html', utilisateur=utilisateur, posts=posts)
+
+#editer le profil
+@app.route('/edit', methods=['GET', 'POST'])
+@login_required
+def edit():
+    form = FormEditionProfil(obj=current_user)
+    if form.validate_on_submit():
+        current_user.nom_utilisateur = form.nom_utilisateur.data
+        current_user.a_propos_moi = form.a_propos_moi.data
+        #if form.mot_passe.data:
+        #   current_user.genere_mot_passe(form.mot_passe.data)
+        db.session.commit()
+        flash('Votre profil a été mis à jour.', 'success')
+        return redirect(url_for('profil', nom_utilisateur=current_user.nom_utilisateur))
+    return render_template('edit.html', form=form)
 
