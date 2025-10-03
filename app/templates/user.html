@@ -6,11 +6,24 @@
        class="rounded-circle shadow-sm mb-3" 
        width="150" height="150">
        Utilisateur : {{ utilisateur.nom_utilisateur }}</h1>
+        <p>{{utilisateur.followers_count() }} followers, {{
+          utilisateur.following_count() }} following.</p>
         {% if utilisateur == current_user %}
-         <p><a href="{{ url_for('edit') }}">edit your profil</a>
-       
+         <p><a href="{{ url_for('edit') }}">edit your profil</a> </p>
+        {% elif not current_user.is_following(utilisateur)%}
+        <p>
+          <form action="{{ url_for('follow', nom_utilisateur=utilisateur.nom_utilisateur) }}" method="post">
+            {{ form.hidden_tag() }}
+            <button type="submit" class="btn btn-primary">Follow</button>
+          </form>
         </p>
-
+        {% else %}
+        <p>
+          <form action="{{ url_for('unfollow', nom_utilisateur=utilisateur.nom_utilisateur) }}" method="post">
+            {{ form.hidden_tag() }}
+            <button type="submit" class="btn btn-secondary">Unfollow</button>
+          </form>
+        </p>
 
   {% endif %}
      
