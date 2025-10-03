@@ -132,3 +132,7 @@ def edit():
         return redirect(url_for('profil', nom_utilisateur=current_user.nom_utilisateur))
     return render_template('edit.html', form=form)
 
+@app.route('/crash')
+def crash():
+    1 / 0  # division par zéro = erreur 500
+

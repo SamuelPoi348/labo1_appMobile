@@ -8,6 +8,15 @@ from flask_login import UserMixin
 import hashlib
 
 
+followers = sa.Table(
+    'followers',
+    db.Model.metadata,
+    sa.Column('follower_id', sa.Integer, sa.ForeignKey('utilisateur.id'),
+              primary_key=True),
+    sa.Column('followed_id', sa.Integer, sa.ForeignKey('utilisateur.id'),
+              primary_key=True)
+)
+
 class Utilisateur(db.Model, UserMixin):
     __tablename__ = 'utilisateur'
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
@@ -32,6 +41,15 @@ class Utilisateur(db.Model, UserMixin):
     def avatar(self, taille=100):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
         return f"https://www.gravatar.com/avatar/{digest}?d=identicon&s={taille}"
+    
+    following: so.WriteOnlyMapped["Utilisateur"] = so.relationship(
+        secondary=followers,primaryjoin=(followers.c.follower_id == id),
+        secondaryjoin=(followers.c.followed_id == id),
+        back_populates='followers')
+    followers: so.WriteOnlyMapped["Utilisateur"] = so.relationship(
+        secondary=followers,primaryjoin=(followers.c.followed_id == id),
+        secondaryjoin=(followers.c.follower_id == id),
+        back_populates='following')
 
 
 class Post(db.Model):

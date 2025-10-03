@@ -5,6 +5,9 @@ from flask import render_template
 #export MAIL_SERVER=localhost
 #export MAIL_PORT=8025
 
+#python -m aiosmtpd -n -l localhost:8025
+
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
