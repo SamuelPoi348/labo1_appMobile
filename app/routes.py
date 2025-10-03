@@ -8,6 +8,7 @@ import sqlalchemy as sa
 from app import db
 from urllib.parse import urlsplit
 from datetime import datetime, timezone
+from app.form import EmptyForm
 
 
 
@@ -114,8 +115,8 @@ def profil(nom_utilisateur):
     posts = db.session.scalars(
         sa.select(Post).where(Post.id_utilisateur == utilisateur.id).order_by(Post.timestamp.desc())
     ).all()
-    
-    return render_template('user.html', utilisateur=utilisateur, posts=posts)
+    form = EmptyForm()
+    return render_template('user.html', utilisateur=utilisateur, posts=posts,form=form,current_user=current_user)
 
 #editer le profil
 @app.route('/edit', methods=['GET', 'POST'])
@@ -135,4 +136,46 @@ def edit():
 @app.route('/crash')
 def crash():
     1 / 0  # division par zéro = erreur 500
+
+@app.route('/follow/<nom_utilisateur>', methods=['POST'])
+@login_required
+def follow(nom_utilisateur):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        utilisateur = db.session.scalar(
+            sa.select(Utilisateur).where(Utilisateur.nom_utilisateur == nom_utilisateur)
+        )
+        if utilisateur is None:
+            flash(f"L'utilisateur {nom_utilisateur} n'a pas été trouvé.", 'error')
+            return redirect(url_for('index'))
+        if utilisateur == current_user:
+            flash("Vous ne pouvez pas vous suivre vous-même!", 'error')
+            return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
+        current_user.follow(utilisateur)
+        db.session.commit()
+        flash(f'Vous suivez maintenant {nom_utilisateur}!', 'success')
+        return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
+    else:
+        return redirect(url_for('index'))
+    
+@app.route('/unfollow/<nom_utilisateur>', methods=['POST'])
+@login_required
+def unfollow(nom_utilisateur):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        utilisateur = db.session.scalar(
+            sa.select(Utilisateur).where(Utilisateur.nom_utilisateur == nom_utilisateur)
+        )
+        if utilisateur is None:
+            flash(f"L'utilisateur {nom_utilisateur} n'a pas été trouvé.", 'error')
+            return redirect(url_for('index'))
+        if utilisateur == current_user:
+            flash("Vous ne pouvez pas vous désabonner de vous-même!", 'error')
+            return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
+        current_user.unfollow(utilisateur)
+        db.session.commit()
+        flash(f'Vous ne suivez plus {nom_utilisateur}.', 'success')
+        return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
+    else:
+        return redirect(url_for('index'))
 

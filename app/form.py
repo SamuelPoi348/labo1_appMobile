@@ -44,4 +44,6 @@ class FormEditionProfil(FlaskForm):
     a_propos_moi = TextAreaField('À propos de moi', validators=[Length(max=140)])
     submit = SubmitField('Enregistrer')
 
+class EmptyForm(FlaskForm):
+      submit = SubmitField('Submit')
 
