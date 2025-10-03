@@ -6,6 +6,8 @@ from app import db  # <- IMPORTER l'instance db unique, PAS en recréer une
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 import hashlib
+#fix pour les follow unfollow
+from sqlalchemy.orm import Mapped
 
 
 followers = sa.Table(
@@ -42,14 +44,18 @@ class Utilisateur(db.Model, UserMixin):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
         return f"https://www.gravatar.com/avatar/{digest}?d=identicon&s={taille}"
     
-    following: so.WriteOnlyMapped["Utilisateur"] = so.relationship(
-        secondary=followers,primaryjoin=(followers.c.follower_id == id),
-        secondaryjoin=(followers.c.followed_id == id),
-        back_populates='followers')
-    followers: so.WriteOnlyMapped["Utilisateur"] = so.relationship(
-        secondary=followers,primaryjoin=(followers.c.followed_id == id),
-        secondaryjoin=(followers.c.follower_id == id),
-        back_populates='following')
+    following: Mapped[list["Utilisateur"]] = so.relationship(
+    secondary=followers,
+    primaryjoin=(followers.c.follower_id == id),
+    secondaryjoin=(followers.c.followed_id == id),
+    back_populates='followers'
+)
+    followers: Mapped[list["Utilisateur"]] = so.relationship(
+    secondary=followers,
+    primaryjoin=(followers.c.followed_id == id),
+    secondaryjoin=(followers.c.follower_id == id),
+    back_populates='following'
+)
     
     def follow(self, utilisateur):
         if not self.is_following(utilisateur):
@@ -59,20 +65,43 @@ class Utilisateur(db.Model, UserMixin):
         if self.is_following(utilisateur):
             self.following.remove(utilisateur)
     
+    #def is_following(self, utilisateur):
+     #   query = self.following.select().where(Utilisateur.id == utilisateur.id)
+      #  return db.session.scalar(query) is not None
+    
     def is_following(self, utilisateur):
-        query = self.following.select().where(Utilisateur.id == utilisateur.id)
-        return db.session.scalar(query) is not None
+       return db.session.scalar(
+        sa.select(followers)
+        .where(
+            followers.c.follower_id == self.id,
+            followers.c.followed_id == utilisateur.id
+        )
+    ) is not None
+
+    #def followers_count(self):
+    #    query = sa.select(sa.func.count()).select_from(
+    #        self.followers.select().subquery())
+    #    return db.session.scalar(query)
+    
+    #def following_count(self):
+    #    query = sa.select(sa.func.count()).select_from(
+    #        self.following.select().subquery())
+    #    return db.session.scalar(query)
     
     def followers_count(self):
-        query = sa.select(sa.func.count()).select_from(
-            self.followers.select().subquery())
-        return db.session.scalar(query)
-    
+      return db.session.scalar(
+        sa.select(sa.func.count())
+        .select_from(followers)
+        .where(followers.c.followed_id == self.id)
+    )
+
     def following_count(self):
-        query = sa.select(sa.func.count()).select_from(
-            self.following.select().subquery())
-        return db.session.scalar(query)
-    
+      return db.session.scalar(
+        sa.select(sa.func.count())
+        .select_from(followers)
+        .where(followers.c.follower_id == self.id)
+    )
+
     def following_posts(self):
        Author = so.aliased(Utilisateur)
        Follower = so.aliased(followers)
