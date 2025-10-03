@@ -1,3 +1,9 @@
+from app import  db,app
+from flask import render_template
+
+#aiosmtpd -n -c aiosmtpd.handlers.Debugging -l localhost:5000
+#export MAIL_SERVER=localhost
+#export MAIL_PORT=8025
 
 @app.errorhandler(404)
 def not_found_error(error):
