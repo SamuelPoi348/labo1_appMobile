@@ -52,6 +52,12 @@
           {{ post.contenu }}
         </li>
       {% endfor %}
+      {% if prev_url %}
+        <a href="{{ prev_url }}">Posts plus récents </a>
+      {% endif %}
+      {% if next_url %}
+        <a href="{{ next_url }}"> Posts plus anciens</a>
+      {% endif %}
     </ul>
   {% else %}
     <p> <img src="{{ utilisateur.avatar(150) }}" 

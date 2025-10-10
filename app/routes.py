@@ -122,11 +122,15 @@ def profil(nom_utilisateur):
         flash(f"L'utilisateur {nom_utilisateur} n'a pas été trouvé.", 'error')
         return redirect(url_for('index'))
     
-    posts = db.session.scalars(
-        sa.select(Post).where(Post.id_utilisateur == utilisateur.id).order_by(Post.timestamp.desc())
-    ).all()
+    page= request.args.get('page', 1, type=int)
+    query = utilisateur.posts.select().order_by(Post.timestamp.desc())
+    posts = db.paginate(query, page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+    next_url = url_for('profil', nom_utilisateur=nom_utilisateur, page=posts.next_num) if posts.has_next else None
+    prev_url = url_for('profil', nom_utilisateur=nom_utilisateur, page=posts.prev_num) if posts.has_prev else None
+
+    
     form = EmptyForm()
-    return render_template('user.html', utilisateur=utilisateur, posts=posts,form=form,current_user=current_user)
+    return render_template('user.html', utilisateur=utilisateur, posts=posts,form=form,current_user=current_user,next_url=next_url, prev_url=prev_url)
 
 #editer le profil
 @app.route('/edit', methods=['GET', 'POST'])

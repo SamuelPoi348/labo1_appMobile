@@ -15,10 +15,13 @@
 
 
   <!--routes-->
-  <!-- ancien posts
+  <!-- ancien posts de index et user
    posts = db.session.scalars(
             sa.select(Post)
               .where(Post.id_utilisateur == current_user.id)
               .order_by(Post.timestamp.desc())
         ).all()
+        
+        posts = db.session.scalars(
+        sa.select(Post).where(Post.id_utilisateur == utilisateur.id).order_by(Post.timestamp.desc())).all()
         -->
