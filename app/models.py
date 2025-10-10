@@ -40,7 +40,7 @@ class Utilisateur(db.Model, UserMixin):
             return False
         return check_password_hash(self.mot_passe_hash, mot_de_passe)
       
-    def avatar(self, taille=100):
+    def avatar(self, taille):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
         return f"https://www.gravatar.com/avatar/{digest}?d=identicon&s={taille}"
     
@@ -103,20 +103,18 @@ class Utilisateur(db.Model, UserMixin):
     )
 
     def following_posts(self):
-       Author = so.aliased(Utilisateur)
-       Follower = so.aliased(followers)
-       return (
-           sa.select(Post)
-           .join(Post.author.of_type(Author))
-           .join(Author.followers.of_type(Follower), isouter=True)
-           .where(
-               sa.or_(
-                   Follower.c.follower_id == self.id,
-                   Post.id_utilisateur == self.id
-               ))
-               .group_by(Post)
-                .order_by(Post.timestamp.desc())
-       )
+     return (
+        sa.select(Post)
+        .join(followers, followers.c.followed_id == Post.id_utilisateur)
+        .where(
+            sa.or_(
+                followers.c.follower_id == self.id,  # les utilisateurs que je suis
+                Post.id_utilisateur == self.id        # mes propres posts
+            )
+        )
+        .order_by(Post.timestamp.desc())
+    )
+
 
 
 class Post(db.Model):

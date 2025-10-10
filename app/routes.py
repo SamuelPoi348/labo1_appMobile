@@ -37,6 +37,7 @@ def index():
               .where(Post.id_utilisateur == current_user.id)
               .order_by(Post.timestamp.desc())
         ).all()
+        posts = db.session.scalars(current_user.following_posts()).all()
         return render_template('index.html', utilisateur=current_user, posts=posts,form=form)
     return render_template('index.html')
 
