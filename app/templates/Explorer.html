@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Explorer les posts</h1>
+{% if posts %}
+    <ul>
+      {% for post in posts %}
+        <li>
+            <img src="{{ post.auteur.avatar(150) }}" 
+           alt="Avatar de {{ post.auteur.nom_utilisateur }}" 
+          class="rounded-circle shadow-sm mb-3" 
+           width="50" height="50">
+          <strong>{{ post.timestamp.strftime('%d %B %Y à %H:%M') }}</strong><br>
+          {{ post.auteur.nom_utilisateur }}: {{ post.contenu }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Aucun post pour le moment.</p>
+  {% endif %}
+
+  
+{% endblock %}

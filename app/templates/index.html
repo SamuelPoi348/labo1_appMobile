@@ -3,8 +3,9 @@
 {# Affiche le profil de l'utilisateur connecté, si connecté #}
   {% if current_user.is_authenticated %}
     {% include "_profil_utilisateur.html" with context %}
-
-    <form action="" method="post">
+    
+    {% if form %}
+    <form action="" method="post" novalidate>
       {{ form.hidden_tag() }}
       <p>
         {{ form.post.label }}<br>
@@ -15,7 +16,8 @@
       </p>
       <p>{{ form.submit }}</p>
       </form>
-      
+    {% endif %}
+
   {% else %}
     <p>Bienvenue ! Veuillez <a href="{{ url_for('connexion') }}">vous connecter</a>.</p>
   {% endif %}

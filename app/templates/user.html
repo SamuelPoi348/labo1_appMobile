@@ -7,6 +7,11 @@
        width="150" height="150">
        Utilisateur : {{ utilisateur.nom_utilisateur }}</h1>
        <small>{{ utilisateur.email }}</small>
+       {% if utilisateur.derniere_connexion %}
+        <p class="text-muted mt-2">
+          Dernière connexion : {{ utilisateur.derniere_connexion.strftime('%d %B %Y à %H:%M') }}
+        </p>
+      {% endif %}
         <p>{{utilisateur.followers_count() }} followers, {{
           utilisateur.following_count() }} following.</p>
         {% if utilisateur == current_user %}

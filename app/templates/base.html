@@ -37,6 +37,7 @@
           <a href="{{ url_for('connexion') }}">Connexion</a>
       {% else %}
           <a href="{{ url_for('index') }}">Accueil</a>
+          <a href="{{ url_for('explore') }}">Explorer</a>
           <a href="{{ url_for('profil', nom_utilisateur=current_user.nom_utilisateur) }}">Profil</a>
           <a href="{{ url_for('deconnexion') }}">Déconnexion</a>
       {% endif %}

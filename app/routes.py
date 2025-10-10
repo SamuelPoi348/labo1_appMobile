@@ -188,4 +188,11 @@ def unfollow(nom_utilisateur):
         return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
     else:
         return redirect(url_for('index'))
+    
+@app.route('/explore')
+@login_required
+def explore():
+  query = sa.select(Post).order_by(Post.timestamp.desc())
+  posts = db.session.scalars(query).all()
+  return render_template('index.html', title="Explorer", posts=posts)
 
