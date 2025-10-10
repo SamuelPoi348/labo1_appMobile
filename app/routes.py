@@ -1,6 +1,6 @@
 from app import app
 from flask import render_template, redirect, url_for, flash, session, request
-from app.form import FormConnexion  
+from app.form import FormConnexion, PostForm
 from app.models import Utilisateur, Post
 from flask_login import current_user, login_user, logout_user, login_required
 from app.form import FormConnexion, FormEnregistrement, FormEditionProfil
@@ -19,16 +19,25 @@ def update_last_seen():
         current_user.derniere_connexion = datetime.now(timezone.utc)
         db.session.commit()
 
-@app.route('/')
-@app.route('/index')
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/index',methods=['GET', 'POST'])
+@login_required
 def index():
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(contenu=form.post.data, auteur=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Votre post est maintenant en ligne!', 'success')
+        return redirect(url_for('index'))
+    
     if current_user.is_authenticated:
         posts = db.session.scalars(
             sa.select(Post)
               .where(Post.id_utilisateur == current_user.id)
               .order_by(Post.timestamp.desc())
         ).all()
-        return render_template('index.html', utilisateur=current_user, posts=posts)
+        return render_template('index.html', utilisateur=current_user, posts=posts,form=form)
     return render_template('index.html')
 
 @app.route('/connexion', methods=['GET', 'POST'])

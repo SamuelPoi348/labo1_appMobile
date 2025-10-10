@@ -6,7 +6,7 @@
          width="100" height="100">
     <div>
       <h4 class="mb-0">{{ utilisateur.nom_utilisateur }}</h4>
-      <small>{{ utilisateur.email }}</small>
+      
       {% if utilisateur.derniere_connexion %}
         <p class="text-muted mt-2">
           Dernière connexion : {{ utilisateur.derniere_connexion.strftime('%d %B %Y à %H:%M') }}

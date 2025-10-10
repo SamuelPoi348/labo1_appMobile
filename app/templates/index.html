@@ -3,6 +3,19 @@
 {# Affiche le profil de l'utilisateur connecté, si connecté #}
   {% if current_user.is_authenticated %}
     {% include "_profil_utilisateur.html" with context %}
+
+    <form action="" method="post">
+      {{ form.hidden_tag() }}
+      <p>
+        {{ form.post.label }}<br>
+        {{ form.post(size=32,row=4) }}<br>
+        {% for error in form.post.errors %}
+          <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>{{ form.submit }}</p>
+      </form>
+      
   {% else %}
     <p>Bienvenue ! Veuillez <a href="{{ url_for('connexion') }}">vous connecter</a>.</p>
   {% endif %}

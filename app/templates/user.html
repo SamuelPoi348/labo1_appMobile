@@ -6,6 +6,7 @@
        class="rounded-circle shadow-sm mb-3" 
        width="150" height="150">
        Utilisateur : {{ utilisateur.nom_utilisateur }}</h1>
+       <small>{{ utilisateur.email }}</small>
         <p>{{utilisateur.followers_count() }} followers, {{
           utilisateur.following_count() }} following.</p>
         {% if utilisateur == current_user %}
@@ -42,7 +43,7 @@
            alt="Avatar de {{ utilisateur.nom_utilisateur }}" 
           class="rounded-circle shadow-sm mb-3" 
            width="50" height="50">
-          <strong>{{ post.date_creation.strftime('%d %B %Y à %H:%M') }}</strong><br>
+          <strong>{{ post.timestamp.strftime('%d %B %Y à %H:%M') }}</strong><br>
           {{ post.contenu }}
         </li>
       {% endfor %}
