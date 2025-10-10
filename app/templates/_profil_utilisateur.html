@@ -14,12 +14,7 @@
   {% if posts %}
     <ul class="list-unstyled">
       {% for post in posts %}
-        <li class="mb-2">
-          <img src="{{ post.auteur.avatar(25) }}" 
-               alt="Avatar mini" 
-               class="rounded-circle me-2" width="25" height="25">
-          <strong>{{ post.timestamp.strftime('%d %B %Y à %H:%M') }}</strong><br>
-          {{post.auteur.nom_utilisateur}} : {{ post.contenu }}
+         {% include '_post.html'%}
         </li>
       {% endfor %}
     </ul>
