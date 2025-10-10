@@ -12,3 +12,13 @@
       <p>{{ utilisateur.a_propos_moi }}</p>
     </div>
   {% endif %}-->
+
+
+  <!--routes-->
+  <!-- ancien posts
+   posts = db.session.scalars(
+            sa.select(Post)
+              .where(Post.id_utilisateur == current_user.id)
+              .order_by(Post.timestamp.desc())
+        ).all()
+        -->

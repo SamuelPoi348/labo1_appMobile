@@ -17,6 +17,12 @@
          {% include '_post.html'%}
         </li>
       {% endfor %}
+      {% if prev_url %}
+        <a href="{{ prev_url }}">Posts plus récents </a>
+      {% endif %}
+      {% if next_url %}
+        <a href="{{ next_url }}"> Posts plus anciens</a>
+      {% endif %}
     </ul>
   {% else %}
     <p>Aucun post pour le moment.</p>
