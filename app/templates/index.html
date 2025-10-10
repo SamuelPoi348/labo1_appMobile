@@ -1,16 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Bienvenue {{utilisateur}}</h1>
-<!-- Votre contenu spécifique ici -->
-<ul>
-    {% for critique in critiques %}
-        <li>
-            <article style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-            Critique par:<strong>{{ critique.nom_utilisateur }}</strong> <br>
-             Film {{ critique.film }}: {{ critique.commentaire }}
-            </article> 
-            
-        </li>
-    {% endfor %}
-</ul>
+{# Affiche le profil de l'utilisateur connecté, si connecté #}
+  {% if current_user.is_authenticated %}
+    {% include "_profil_utilisateur.html" with context %}
+    
+    {% if form %}
+    <form action="" method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <p>
+        {{ form.post.label }}<br>
+        {{ form.post(size=32,row=4) }}<br>
+        {% for error in form.post.errors %}
+          <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>{{ form.submit }}</p>
+      </form>
+    {% endif %}
+
+  {% else %}
+    <p>Bienvenue ! Veuillez <a href="{{ url_for('connexion') }}">vous connecter</a>.</p>
+  {% endif %}
 {% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Modifier le profil de {{ current_user.nom_utilisateur }}</h1>
+<form method="POST" action="{{ url_for('edit') }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.nom_utilisateur.label(class="form-label") }}
+        {{ form.nom_utilisateur(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.a_propos_moi.label(class="form-label") }}
+        {{ form.a_propos_moi(class="form-control", rows=4) }}
+    </div>
+    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button
+</form>>
+{% endblock %}

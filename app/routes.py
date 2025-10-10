@@ -1,47 +1,205 @@
 from app import app
-from flask import render_template, redirect, url_for, flash, session
-from app.form import FormConnexion  
+from flask import render_template, redirect, url_for, flash, session, request
+from app.form import FormConnexion, PostForm
 from app.models import Utilisateur, Post
+from flask_login import current_user, login_user, logout_user, login_required
+from app.form import FormConnexion, FormEnregistrement, FormEditionProfil
+import sqlalchemy as sa
+from app import db
+from urllib.parse import urlsplit
+from datetime import datetime, timezone
+from app.form import EmptyForm
 
-utilisateur = "Samuel Poirier"
-critiques = [ 
-    {
-        "nom_utilisateur": "FilmLover23",
-        "film": "Oppenheimer",
-        "commentaire": "Un chef-d'œuvre cinématographique ! Nolan nous livre une biographie captivante avec des performances exceptionnelles."
-    },
-    {
-        "nom_utilisateur": "CinéPassionné",
-        "film": "Spider-Man: Across the Spider-Verse",
-        "commentaire": "L'animation est révolutionnaire et l'histoire multi-dimensionnelle est brillamment exécutée."
-    },
-    {
-        "nom_utilisateur": "MovieCritic2024",
-        "film": "The Batman",
-        "commentaire": "Une approche sombre et mature du personnage. Robert Pattinson surprend dans le rôle titre."
-    },
-    {
-        "nom_utilisateur": "FilmExpert",
-        "film": "Dune",
-        "commentaire": "Adaptation fidèle et visuellement époustouflante. Denis Villeneuve maîtrise parfaitement l'univers de Herbert."
-    }
-]
 
-@app.route('/')
-@app.route('/index')
+
+#utilisateur = "Samuel Poirier"
+@app.before_request
+def update_last_seen():
+    if current_user.is_authenticated:
+        current_user.derniere_connexion = datetime.now(timezone.utc)
+        db.session.commit()
+
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/index',methods=['GET', 'POST'])
+@login_required
 def index():
-    return render_template('index.html', critiques=critiques, utilisateur=utilisateur)
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(contenu=form.post.data, auteur=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Votre post est maintenant en ligne!', 'success')
+        return redirect(url_for('index'))
+    
+    if current_user.is_authenticated:
+       
+        page = request.args.get('page', 1, type=int)
+        posts = db.paginate(current_user.following_posts(), page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+
+        next_url = url_for('index', page=posts.next_num) if posts.has_next else None
+        prev_url = url_for('index', page=posts.prev_num) if posts.has_prev else None
+        return render_template('index.html', utilisateur=current_user, posts=posts.items,form=form, next_url=next_url, prev_url=prev_url)
+    return render_template('index.html')
 
 @app.route('/connexion', methods=['GET', 'POST'])
 def connexion():
+    if current_user.is_authenticated:
+            return redirect(url_for('index'))
+        
     form = FormConnexion()
     if form.validate_on_submit():
-        session['nom_utilisateur'] = form.nom_utilisateur.data
-        session['se_souvenir'] = form.se_souvenir.data
-        if session['nom_utilisateur'] =="admin" and form.mot_passe.data == "admin":
-            flash(f'Bienvenue {form.nom_utilisateur.data}, remember_me={form.se_souvenir.data}', 'success')
-        else :
-            flash(f'Connexion requise pour acceder à cette page {form.nom_utilisateur.data}, remember_me={form.se_souvenir.data}', 'error')
+          # Recherche de l'utilisateur par nom d'utilisateur
+          utilisateur = db.session.scalar(
+              sa.select(Utilisateur).where(Utilisateur.nom_utilisateur == form.nom_utilisateur.data)
+          )
 
-        return redirect(url_for('index'))  
+          # Vérification du mot de passe avec la méthode verifier_mot_de_passe()
+          if utilisateur is None or not utilisateur.verifier_mot_de_passe(form.mot_passe.data):
+              flash('Nom d\'utilisateur ou mot de passe incorrect', 'error')
+              return redirect(url_for('connexion'))
+
+
+          # Créer la session utilisateur et gérer "Se souvenir de moi"
+          login_user(utilisateur, remember=form.se_souvenir.data)
+
+          
+
+
+          # Gestion de la redirection après connexion (paramètre next)
+          page_suivante = request.args.get('next')
+          if not page_suivante or urlsplit(page_suivante).netloc != '':
+             page_suivante = url_for('profil', nom_utilisateur=utilisateur.nom_utilisateur)
+          return redirect(page_suivante)
+
     return render_template('connexion.html', form=form)
+
+@app.route('/deconnexion')
+def deconnexion():
+    logout_user()
+    return redirect(url_for('index'))
+
+
+@app.route('/enregistrement', methods=['GET', 'POST'])
+def enregistrement():
+      # Rediriger vers index si l'utilisateur est déjà connecté
+      if current_user.is_authenticated:
+          return redirect(url_for('index'))
+
+      # Créer une instance de FormEnregistrement
+      form = FormEnregistrement()
+
+      # Vérifier si le formulaire est valide avec validate_on_submit()
+      if form.validate_on_submit():
+          # Instancier un objet Utilisateur avec les données du formulaire
+          utilisateur = Utilisateur(nom_utilisateur=form.nom_utilisateur.data, email=form.email.data # type: ignore
+          )
+
+          # Appeler la méthode genere_mot_passe() avec le mot de passe du formulaire
+          utilisateur.genere_mot_passe(form.mot_passe.data)
+
+          # Ajouter l'utilisateur à la session de base de données
+          db.session.add(utilisateur)
+
+          # Effectuer le commit
+          db.session.commit()
+
+          # Afficher un message flash de confirmation
+          flash('Félicitations, vous êtes maintenant enregistré!', 'success')
+
+          # Rediriger vers la page de connexion
+          return redirect(url_for('connexion'))
+
+      # Sur un GET: Rendre le template form_enregistrement.html avec le formulaire
+      return render_template('enregistrement.html', form=form)
+
+@app.route('/user/<nom_utilisateur>')
+@login_required
+def profil(nom_utilisateur):
+    utilisateur = db.session.scalar(
+        sa.select(Utilisateur).where(Utilisateur.nom_utilisateur == nom_utilisateur)
+    )
+    if utilisateur is None:
+        flash(f"L'utilisateur {nom_utilisateur} n'a pas été trouvé.", 'error')
+        return redirect(url_for('index'))
+    
+    page= request.args.get('page', 1, type=int)
+    query = utilisateur.posts.select().order_by(Post.timestamp.desc())
+    posts = db.paginate(query, page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+    next_url = url_for('profil', nom_utilisateur=nom_utilisateur, page=posts.next_num) if posts.has_next else None
+    prev_url = url_for('profil', nom_utilisateur=nom_utilisateur, page=posts.prev_num) if posts.has_prev else None
+
+    
+    form = EmptyForm()
+    return render_template('user.html', utilisateur=utilisateur, posts=posts,form=form,current_user=current_user,next_url=next_url, prev_url=prev_url)
+
+#editer le profil
+@app.route('/edit', methods=['GET', 'POST'])
+@login_required
+def edit():
+    form = FormEditionProfil(obj=current_user)
+    if form.validate_on_submit():
+        current_user.nom_utilisateur = form.nom_utilisateur.data
+        current_user.a_propos_moi = form.a_propos_moi.data
+        #if form.mot_passe.data:
+        #   current_user.genere_mot_passe(form.mot_passe.data)
+        db.session.commit()
+        flash('Votre profil a été mis à jour.', 'success')
+        return redirect(url_for('profil', nom_utilisateur=current_user.nom_utilisateur))
+    return render_template('edit.html', form=form)
+
+@app.route('/crash')
+def crash():
+    1 / 0  # division par zéro = erreur 500
+
+@app.route('/follow/<nom_utilisateur>', methods=['POST'])
+@login_required
+def follow(nom_utilisateur):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        utilisateur = db.session.scalar(
+            sa.select(Utilisateur).where(Utilisateur.nom_utilisateur == nom_utilisateur)
+        )
+        if utilisateur is None:
+            flash(f"L'utilisateur {nom_utilisateur} n'a pas été trouvé.", 'error')
+            return redirect(url_for('index'))
+        if utilisateur == current_user:
+            flash("Vous ne pouvez pas vous suivre vous-même!", 'error')
+            return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
+        current_user.follow(utilisateur)
+        db.session.commit()
+        flash(f'Vous suivez maintenant {nom_utilisateur}!', 'success')
+        return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
+    else:
+        return redirect(url_for('index'))
+    
+@app.route('/unfollow/<nom_utilisateur>', methods=['POST'])
+@login_required
+def unfollow(nom_utilisateur):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        utilisateur = db.session.scalar(
+            sa.select(Utilisateur).where(Utilisateur.nom_utilisateur == nom_utilisateur)
+        )
+        if utilisateur is None:
+            flash(f"L'utilisateur {nom_utilisateur} n'a pas été trouvé.", 'error')
+            return redirect(url_for('index'))
+        if utilisateur == current_user:
+            flash("Vous ne pouvez pas vous désabonner de vous-même!", 'error')
+            return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
+        current_user.unfollow(utilisateur)
+        db.session.commit()
+        flash(f'Vous ne suivez plus {nom_utilisateur}.', 'success')
+        return redirect(url_for('profil', nom_utilisateur=nom_utilisateur))
+    else:
+        return redirect(url_for('index'))
+    
+@app.route('/explore')
+@login_required
+def explore():
+  page = request.args.get('page', 1, type=int)
+  query = sa.select(Post).order_by(Post.timestamp.desc())
+  posts = db.paginate(query, page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+  next_url = url_for('explore', page=posts.next_num) if posts.has_next else None
+  prev_url = url_for('explore', page=posts.prev_num) if posts.has_prev else None
+  return render_template('index.html', title="Explorer", posts=posts.items,next_url=next_url, prev_url=prev_url)
+

@@ -1,0 +1,30 @@
+<div class="card mb-4 p-3">
+  <div class="d-flex align-items-center">
+    <div>
+      <h4 class="mb-0">Bienvenue : {{ current_user.nom_utilisateur }}</h4>
+      
+      
+    </div>
+  </div>
+
+  
+    
+
+  <h5 class="mt-4">Posts récents :</h5>
+  {% if posts %}
+    <ul class="list-unstyled">
+      {% for post in posts %}
+         {% include '_post.html'%}
+        </li>
+      {% endfor %}
+      {% if prev_url %}
+        <a href="{{ prev_url }}">Posts plus récents </a>
+      {% endif %}
+      {% if next_url %}
+        <a href="{{ next_url }}"> Posts plus anciens</a>
+      {% endif %}
+    </ul>
+  {% else %}
+    <p>Aucun post pour le moment.</p>
+  {% endif %}
+</div>

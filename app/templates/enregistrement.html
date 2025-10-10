@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+   
+  <h1>S'enregistrer</h1>
+
+  <p>Déjà un compte? <a href="{{ url_for('connexion') }}">Se connecter</a></p>
+
+  <form method="POST" novalidate>
+      {{ form.hidden_tag() }}
+
+      <p>
+          {{ form.nom_utilisateur.label }}
+          {{ form.nom_utilisateur(size=32) }}
+          {% if form.nom_utilisateur.errors %}
+              {% for error in form.nom_utilisateur.errors %}
+                  <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
+          {% endif %}
+      </p>
+
+      <p>
+          {{ form.email.label }}
+          {{ form.email(size=64) }}
+          {% if form.email.errors %}
+              {% for error in form.email.errors %}
+                  <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
+          {% endif %}
+      </p>
+
+      <p>
+          {{ form.mot_passe.label }}
+          {{ form.mot_passe(size=32) }}
+          {% if form.mot_passe.errors %}
+              {% for error in form.mot_passe.errors %}
+                  <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
+          {% endif %}
+      </p>
+
+      <p>
+          {{ form.mot_passe2.label }}
+          {{ form.mot_passe2(size=32) }}
+          {% if form.mot_passe2.errors %}
+              {% for error in form.mot_passe2.errors %}
+                  <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
+          {% endif %}
+      </p>
+
+      <p>{{ form.soumettre() }}</p>
+  </form>
+
+
+
+  {% endblock %}
