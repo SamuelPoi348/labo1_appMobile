@@ -4,6 +4,7 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin
+from flask_mail import Mail
 import logging
 from logging.handlers import SMTPHandler
 #from app.models import Utilisateur, Post
@@ -16,7 +17,8 @@ login.login_message = 'Veuillez vous connecter pour accéder à cette page.'
 
 
 app.config.from_object(Config)
-
+ 
+mail =Mail(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
