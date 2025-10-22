@@ -56,3 +56,10 @@ class ResetPasswordRequestForm(FlaskForm):
      email = StringField('Courriel', validators=[DataRequired(), Email()])
      submit = SubmitField('Reinitialisation de votre mot de passe')
 
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Mot de passe', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Répéter mot de passe', validators=[DataRequired(), EqualTo('Mot de passe')]
+    submit = SubmitField('Réinitaliser votre mot de passe')
+    )
+
