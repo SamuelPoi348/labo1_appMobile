@@ -1,4 +1,5 @@
 from typing import Optional
+
 import sqlalchemy as sa
 import sqlalchemy.orm as so
 from datetime import datetime, timezone
@@ -7,7 +8,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 import hashlib
 #fix pour les follow unfollow
+import jwt
+from time import time
 from sqlalchemy.orm import Mapped
+from flask import current_app
+
 
 
 followers = sa.Table(
@@ -39,6 +44,17 @@ class Utilisateur(db.Model, UserMixin):
         if self.mot_passe_hash is None:
             return False
         return check_password_hash(self.mot_passe_hash, mot_de_passe)
+    def get_reset_password_token(self, expires_in=600):
+     return jwt.encode({'reset_password': self.id, 'exp': time() + expires_in},current_app.config['SECRET_KEY'], algorithm='HS256')
+
+    @staticmethod
+    def verify_reset_password_token(token):
+     try:
+        id = jwt.decode(token, current_app.config['SECRET_KEY'],
+                        algorithms=['HS256'])['reset_password']
+     except:
+        return
+     return db.session.get(User, id)
       
     def avatar(self, taille):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()

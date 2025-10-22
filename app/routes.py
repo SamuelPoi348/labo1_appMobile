@@ -1,6 +1,7 @@
 from app import app
 from flask import render_template, redirect, url_for, flash, session, request
-from app.form import FormConnexion, PostForm
+from app.form import FormConnexion, PostForm,ResetPasswordRequestForm
+from app.email import send_password_reset_email
 from app.models import Utilisateur, Post
 from flask_login import current_user, login_user, logout_user, login_required
 from app.form import FormConnexion, FormEnregistrement, FormEditionProfil
@@ -202,4 +203,21 @@ def explore():
   next_url = url_for('explore', page=posts.next_num) if posts.has_next else None
   prev_url = url_for('explore', page=posts.prev_num) if posts.has_prev else None
   return render_template('index.html', title="Explorer", posts=posts.items,next_url=next_url, prev_url=prev_url)
+
+@app.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        utilisateur = db.session.scalar(
+            sa.select(Utilisateur).where(Utilisateur.email == form.email.data)
+        )
+        if utilisateur:
+            send_password_reset_email(utilisateur)
+            flash('Vérifiez vos courriels les instructions pour réinitialiser votre mot de passe')
+        return redirect(url_for('login'))
+    return render_template('reset_password_request.html',
+                           title='Réinitialisation de mot de passe',
+                           form=form)
 
