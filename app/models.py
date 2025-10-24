@@ -54,7 +54,7 @@ class Utilisateur(db.Model, UserMixin):
                         algorithms=['HS256'])['reset_password']
      except:
         return
-     return db.session.get(User, id)
+     return db.session.get(Utilisateur, id)
       
     def avatar(self, taille):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()

@@ -10,9 +10,9 @@ class Config:
      # Configuration email (Gmail par exemple)
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.gmail.com'
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None or True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'one@gamil.com'
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or 'mot_de_passe_ou_app_password'
-    MAIL_DEFAULT_SENDER = ('LaboApp', MAIL_USERNAME)
-    ADMINS = ['one@gamil.com']
+    #MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None or True
+    #MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'one@gmail.com'
+    #MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or 'mot_de_passe_ou_app_password'
+    #MAIL_DEFAULT_SENDER = ('LaboApp', MAIL_USERNAME)
+    ADMINS = ['one@gmail.com']
     POSTS_PER_PAGE = 3
