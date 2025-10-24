@@ -1,24 +1,37 @@
 {% extends "base.html" %}
+
 {% block content %}
-{# Affiche le profil de l'utilisateur connecté, si connecté #}
   {% if current_user.is_authenticated %}
     {% include "_profil_utilisateur.html" with context %}
-    
+
     {% if form %}
-    <form action="" method="post" novalidate>
-      {{ form.hidden_tag() }}
-      <p>
-        {{ form.post.label }}<br>
-        {{ form.post(size=32,row=4) }}<br>
-        {% for error in form.post.errors %}
-          <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-      <p>{{ form.submit }}</p>
-      </form>
+    <div class="card shadow-sm border-0 rounded-4 mt-4">
+      <div class="card-body">
+        <h5 class="card-title mb-3"><i class="bi bi-pencil-square me-2 text-primary"></i>Publier une critique</h5>
+
+        <form action="" method="post" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.post.label(class="form-label fw-semibold") }}
+            {{ form.post(class="form-control", rows="4", placeholder="Partagez vos impressions sur un film...") }}
+            {% for error in form.post.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="d-grid">
+            {{ form.submit(class="btn btn-primary rounded-3") }}
+          </div>
+        </form>
+      </div>
+    </div>
     {% endif %}
 
   {% else %}
-    <p>Bienvenue ! Veuillez <a href="{{ url_for('connexion') }}">vous connecter</a>.</p>
+    <div class="text-center py-5">
+      <h1 class="fw-bold mb-3">Bienvenue sur <span class="text-warning">Critique de Film</span> 🎬</h1>
+      <p class="lead text-muted mb-4">Connectez-vous pour publier vos avis et explorer ceux des autres cinéphiles.</p>
+      <a href="{{ url_for('connexion') }}" class="btn btn-lg btn-primary px-4">Se connecter</a>
+    </div>
   {% endif %}
 {% endblock %}
